@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GoChat — Real-Time Chat</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <!-- Auth View -->
+  <div id="auth-view" class="auth-container">
+    <div class="auth-card">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <h1>GoChat</h1>
+      </div>
+      <p class="subtitle">Real-time chat powered by Go, Gin, WebSockets, PostgreSQL &amp; Redis</p>
+
+      <div class="tabs">
+        <button id="tab-login" class="tab active" type="button">Log In</button>
+        <button id="tab-register" class="tab" type="button">Register</button>
+      </div>
+
+      <form id="auth-form">
+        <label for="username">Username</label>
+        <input id="username" type="text" placeholder="e.g. alice" minlength="3" maxlength="32" required />
+
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="Minimum 6 characters" minlength="6" required />
+
+        <div id="auth-error" class="error-msg hidden"></div>
+
+        <button id="auth-submit" class="btn-primary" type="submit">Log In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Chat View -->
+  <div id="chat-view" class="chat-layout hidden">
+    <!-- Left Sidebar: Rooms -->
+    <aside class="sidebar sidebar-left">
+      <div class="sidebar-header">
+        <div class="brand-small">
+          <span class="brand-dot"></span>
+          <span>GoChat</span>
+        </div>
+        <span id="conn-badge" class="conn-badge offline">Offline</span>
+      </div>
+
+      <div class="section-title">
+        <span>Rooms</span>
+      </div>
+      <ul id="room-list" class="room-list"></ul>
+
+      <form id="create-room-form" class="create-room-form">
+        <input id="new-room-name" type="text" placeholder="New room name..." minlength="2" maxlength="40" required />
+        <button type="submit" title="Create Room">+</button>
+      </form>
+
+      <div class="user-footer">
+        <div class="user-info">
+          <span class="avatar" id="current-user-avatar">U</span>
+          <span id="current-username">user</span>
+        </div>
+        <button id="logout-btn" class="btn-ghost" type="button">Log Out</button>
+      </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="chat-main">
+      <header class="chat-header">
+        <div>
+          <h2 id="active-room-title"># general</h2>
+          <span id="online-count" class="online-count">0 online</span>
+        </div>
+      </header>
+
+      <div id="messages" class="messages"></div>
+
+      <form id="message-form" class="message-form">
+        <input id="message-input" type="text" placeholder="Type a message..." autocomplete="off" maxlength="2000" required />
+        <button class="btn-primary" type="submit">Send</button>
+      </form>
+    </main>
+
+    <!-- Right Sidebar: Online Users -->
+    <aside class="sidebar sidebar-right">
+      <div class="section-title">
+        <span>Online Users</span>
+      </div>
+      <ul id="online-users-list" class="online-list"></ul>
+    </aside>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
+
