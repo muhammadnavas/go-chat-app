@@ -37,7 +37,7 @@
 
   <!-- Chat View -->
   <div id="chat-view" class="chat-layout hidden">
-    <!-- Left Sidebar: Rooms -->
+    <!-- Left Sidebar: Channels & Direct Messages -->
     <aside class="sidebar sidebar-left">
       <div class="sidebar-header">
         <div class="brand-small">
@@ -47,15 +47,22 @@
         <span id="conn-badge" class="conn-badge offline">Offline</span>
       </div>
 
-      <div class="section-title">
-        <span>Rooms</span>
-      </div>
-      <ul id="room-list" class="room-list"></ul>
+      <div class="sidebar-scroll">
+        <div class="section-title">
+          <span>Channels</span>
+        </div>
+        <ul id="room-list" class="room-list"></ul>
 
-      <form id="create-room-form" class="create-room-form">
-        <input id="new-room-name" type="text" placeholder="New room name..." minlength="2" maxlength="40" required />
-        <button type="submit" title="Create Room">+</button>
-      </form>
+        <form id="create-room-form" class="create-room-form">
+          <input id="new-room-name" type="text" placeholder="New channel..." minlength="2" maxlength="40" required />
+          <button type="submit" title="Create Channel">+</button>
+        </form>
+
+        <div class="section-title" style="margin-top: 1rem;">
+          <span>Direct Messages</span>
+        </div>
+        <ul id="dm-list" class="room-list"></ul>
+      </div>
 
       <div class="user-footer">
         <div class="user-info">
@@ -69,30 +76,58 @@
     <!-- Main Chat Area -->
     <main class="chat-main">
       <header class="chat-header">
-        <div>
+        <div class="chat-header-left">
           <h2 id="active-room-title"># general</h2>
-          <span id="online-count" class="online-count">0 online</span>
+          <span id="online-count" class="online-count">0 online in room</span>
         </div>
+        <form id="search-form" class="search-form">
+          <input id="search-input" type="search" placeholder="Search messages..." />
+          <button id="clear-search-btn" class="btn-ghost hidden" type="button">Clear</button>
+        </form>
       </header>
+
+      <div id="load-more-wrap" class="load-more-wrap hidden">
+        <button id="load-more-btn" class="btn-ghost" type="button">Load older messages</button>
+      </div>
 
       <div id="messages" class="messages"></div>
 
+      <div id="typing-indicator" class="typing-indicator"></div>
+
+      <div id="emoji-bar" class="emoji-bar hidden">
+        <button type="button" class="emoji-pick">👍</button>
+        <button type="button" class="emoji-pick">❤️</button>
+        <button type="button" class="emoji-pick">😂</button>
+        <button type="button" class="emoji-pick">🎉</button>
+        <button type="button" class="emoji-pick">🔥</button>
+        <button type="button" class="emoji-pick">🚀</button>
+        <button type="button" class="emoji-pick">👀</button>
+        <button type="button" class="emoji-pick">💯</button>
+      </div>
+
       <form id="message-form" class="message-form">
-        <input id="message-input" type="text" placeholder="Type a message..." autocomplete="off" maxlength="2000" required />
+        <button id="emoji-toggle-btn" class="btn-icon" type="button" title="Insert emoji">😊</button>
+        <textarea id="message-input" rows="1" placeholder="Type a message... (Enter to send, Shift+Enter for newline)" maxlength="2000" required></textarea>
         <button class="btn-primary" type="submit">Send</button>
       </form>
     </main>
 
-    <!-- Right Sidebar: Online Users -->
+    <!-- Right Sidebar: Online Users & Directory -->
     <aside class="sidebar sidebar-right">
       <div class="section-title">
-        <span>Online Users</span>
+        <span>In This Room</span>
       </div>
-      <ul id="online-users-list" class="online-list"></ul>
+      <ul id="online-users-list" class="online-list compact-list"></ul>
+
+      <div class="section-title" style="margin-top: 1rem;">
+        <span>All Users (Click to DM)</span>
+      </div>
+      <ul id="all-users-list" class="online-list"></ul>
     </aside>
   </div>
+
+  <div id="toast" class="toast hidden"></div>
 
   <script src="/static/app.js"></script>
 </body>
 </html>
-

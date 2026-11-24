@@ -45,11 +45,12 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 
-	// Public auth routes
+	// Public auth routes (rate-limited: 20 requests/min per IP)
 	api := router.Group("/api")
+	authLimiter := auth.RateLimitMiddleware(20, time.Minute)
 	{
-		api.POST("/auth/register", authHandler.Register)
-		api.POST("/auth/login", authHandler.Login)
+		api.POST("/auth/register", authLimiter, authHandler.Register)
+		api.POST("/auth/login", authLimiter, authHandler.Login)
 	}
 
 	// Protected REST routes
@@ -57,8 +58,10 @@ func main() {
 	protected.Use(auth.Middleware(cfg.JWTSecret))
 	{
 		protected.GET("/auth/me", authHandler.Me)
+		protected.GET("/users", roomHandler.ListUsers)
 		protected.GET("/rooms", roomHandler.ListRooms)
 		protected.POST("/rooms", roomHandler.CreateRoom)
+		protected.POST("/rooms/dm", roomHandler.CreateDirectRoom)
 		protected.GET("/rooms/:id/messages", roomHandler.GetMessages)
 	}
 
@@ -92,4 +95,3 @@ func main() {
 		log.Fatalf("forced shutdown: %v", err)
 	}
 }
-

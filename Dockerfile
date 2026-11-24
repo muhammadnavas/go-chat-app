@@ -6,7 +6,7 @@ COPY go.mod ./
 COPY cmd ./cmd
 COPY internal ./internal
 
-RUN go mod tidy && CGO_ENABLED=0 GOOS=linux go build -o /app/server ./cmd/server
+RUN go mod tidy && go test ./... && CGO_ENABLED=0 GOOS=linux go build -o /app/server ./cmd/server
 
 FROM alpine:3.20
 
@@ -19,4 +19,3 @@ COPY web ./web
 EXPOSE 8080
 
 CMD ["/app/server"]
-

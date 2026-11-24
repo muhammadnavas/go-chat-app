@@ -8,7 +8,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// Connect opens a PostgreSQL connection with retries and runs schema migrations.
+// Connect opens a PostgreSQL connection with retries and runs idempotent schema migrations.
 func Connect(databaseURL string) (*sql.DB, error) {
 	var conn *sql.DB
 	var err error
@@ -50,8 +50,17 @@ func migrate(conn *sql.DB) error {
 	CREATE TABLE IF NOT EXISTS rooms (
 		id SERIAL PRIMARY KEY,
 		name VARCHAR(64) UNIQUE NOT NULL,
+		is_direct BOOLEAN NOT NULL DEFAULT FALSE,
 		created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
 		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+	);
+
+	ALTER TABLE rooms ADD COLUMN IF NOT EXISTS is_direct BOOLEAN NOT NULL DEFAULT FALSE;
+
+	CREATE TABLE IF NOT EXISTS room_members (
+		room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+		user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		PRIMARY KEY (room_id, user_id)
 	);
 
 	CREATE TABLE IF NOT EXISTS messages (
@@ -59,20 +68,33 @@ func migrate(conn *sql.DB) error {
 		room_id BIGINT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
 		user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 		content TEXT NOT NULL,
+		edited_at TIMESTAMPTZ,
+		deleted_at TIMESTAMPTZ,
 		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 	);
 
+	ALTER TABLE messages ADD COLUMN IF NOT EXISTS edited_at TIMESTAMPTZ;
+	ALTER TABLE messages ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+
 	CREATE INDEX IF NOT EXISTS idx_messages_room_created ON messages(room_id, created_at DESC);
+
+	CREATE TABLE IF NOT EXISTS message_reactions (
+		id SERIAL PRIMARY KEY,
+		message_id BIGINT NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+		user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		emoji VARCHAR(16) NOT NULL,
+		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+		UNIQUE (message_id, user_id, emoji)
+	);
 	`
 	if _, err := conn.Exec(schema); err != nil {
 		return err
 	}
 
-	// Seed default chat rooms if they don't exist.
 	defaultRooms := []string{"general", "tech", "random"}
 	for _, name := range defaultRooms {
 		if _, err := conn.Exec(
-			`INSERT INTO rooms (name) VALUES ($1) ON CONFLICT (name) DO NOTHING`,
+			`INSERT INTO rooms (name, is_direct) VALUES ($1, FALSE) ON CONFLICT (name) DO NOTHING`,
 			name,
 		); err != nil {
 			return err
@@ -81,4 +103,3 @@ func migrate(conn *sql.DB) error {
 
 	return nil
 }
-
